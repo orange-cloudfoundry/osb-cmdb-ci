@@ -31,3 +31,5 @@ params:
   DEFAULT_ORG:
   DEFAULT_SPACE:
   SKIP_SSL_VALIDATION:
+    # gradlew arguments and target after http proxy configuration.
+  GRADLE_ARGS:

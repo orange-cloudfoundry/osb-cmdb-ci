@@ -11,6 +11,7 @@ readonly CLIENT_SECRET="${CLIENT_SECRET:?must be set}"
 readonly DEFAULT_ORG="${DEFAULT_ORG:?must be set}"
 readonly DEFAULT_SPACE="${DEFAULT_SPACE:?must be set}"
 readonly SKIP_SSL_VALIDATION="${SKIP_SSL_VALIDATION:?must be set}"
+readonly GRADLE_ARGS="${GRADLE_ARGS:?must be set}"
 
 # Temporary variables to construct gradle command line
 readonly gradle_http_proxy_host=$(echo $http_proxy | sed -E "s#http://(.*):(.+)#\1#")
@@ -43,8 +44,7 @@ run_tests() {
   export SPRING_CLOUD_APPBROKER_ACCEPTANCETEST_CLOUDFOUNDRY_DEFAULT_SPACE="${DEFAULT_SPACE}"
   export SPRING_CLOUD_APPBROKER_ACCEPTANCETEST_CLOUDFOUNDRY_SKIP_SSL_VALIDATION="${SKIP_SSL_VALIDATION}"
   export TESTS_BROKERAPPPATH=build/libs/spring-cloud-app-broker-acceptance-tests.jar
-  ./gradlew ${gradle_proxy_config} clean assemble test -PacceptanceTests -b spring-cloud-app-broker-acceptance-tests/build.gradle --tests "org.springframework.cloud.appbroker.acceptance.CreateInstanceWithBackingServiceKeysAcceptanceTest"
-#  ./gradlew ${gradle_proxy_config} clean assemble test -PacceptanceTests -b spring-cloud-app-broker-acceptance-tests/build.gradle
+  ./gradlew ${gradle_proxy_config} ${GRADLE_ARGS}
 }
 main() {
   setup_symlinks
