@@ -9,7 +9,8 @@ image_resource:
     tag: 8
 
 inputs:
-  - name: git-repo
+  - name: git-repo  # java sources to build
+  - name: ci-repo   # where the script is loaded from
 # Cache gradle dependencies across executions
 # https://concourse-ci.org/tasks.html#schema.task.caches
 # Those are symlinked to ~/.gradle and ~/.m2
