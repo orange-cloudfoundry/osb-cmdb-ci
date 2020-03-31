@@ -1,14 +1,21 @@
 ---
+#Inlined from scab ci/tasks/acceptance-tests.yml with ((docker-registry-url)) appended to openjdk
 platform: linux
 
 image_resource:
   type: docker-image
   source:
-    repository: openjdk
+    repository: ((docker-registry-url))openjdk
     tag: 8
 
 inputs:
   - name: git-repo
+# Cache gradle dependencies across executions
+# https://concourse-ci.org/tasks.html#schema.task.caches
+# Those are symlinked to ~/.gradle and ~/.m2
+caches:
+  - path: maven
+  - path: gradle
 
 run:
   path: ci-repo/scripts/acceptance-tests.sh
