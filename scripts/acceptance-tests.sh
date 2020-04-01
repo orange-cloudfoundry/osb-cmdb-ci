@@ -47,7 +47,16 @@ run_tests() {
   ./gradlew ${gradle_proxy_config} ${GRADLE_ARGS}
 }
 zip_reports_for_publication() {
-  find . -type d -name "reports" | xargs -n 20 tar cvfz reports.tgz
+    # Grab the metadata published by metadata resource
+  url=$(cat metadata/atc_external_url)
+  team=$(cat metadata/build_team_name)
+  pipeline=$(cat metadata/build_pipeline_name)
+  job=$(cat metadata/build_job_name)
+  build=$(cat metadata/build_name)
+
+  report_name="reports_${job}_${build}.tgz"
+  echo "packaging found reports into reports_${job}_${build}.tgz"
+  find . -type d -name "reports" | xargs -n 20 tar cvfz
 }
 main() {
   setup_symlinks
