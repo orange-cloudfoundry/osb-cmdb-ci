@@ -56,7 +56,7 @@ load_metadata() {
   build=$(cat metadata/build_name)
 }
 zip_reports_for_publication() {
-  report_name="reports_${job}_${build}.zip"
+  report_name="reports_${job}_${build}.jar"
   echo "packaging found reports into ${report_name}"
   find . -type d -name "reports" | xargs -n 20 jar cvf "${report_name}"
   index_files=$(find . -type d -name "reports" -exec find {} -name index.html \;)
