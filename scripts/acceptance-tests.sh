@@ -46,11 +46,15 @@ run_tests() {
   export TESTS_BROKERAPPPATH=build/libs/spring-cloud-app-broker-acceptance-tests.jar
   ./gradlew ${gradle_proxy_config} ${GRADLE_ARGS}
 }
+zip_reports_for_publication() {
+  find . -type d -name "reports" | xargs -n 20 tar cvfz reports.tgz
+}
 main() {
   setup_symlinks
   pushd "git-repo" > /dev/null
     build
     run_tests
+    zip_reports_for_publication
   popd > /dev/null
 }
 main
