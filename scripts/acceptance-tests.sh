@@ -56,14 +56,15 @@ load_metadata() {
   build=$(cat metadata/build_name)
 }
 zip_reports_for_publication() {
-  report_name="reports_${job}_${build}.jar"
-  echo "packaging found reports into ${report_name}"
-  find . -type d -name "reports" | xargs -n 20 jar cvf "${report_name}"
+  report_file_name="reports_${job}_${build}.jar"
+  echo "packaging found reports into ${report_file_name}"
+  find . -type d -name "reports" | xargs -n 20 jar cvf "${report_file_name}"
   index_files=$(find . -type d -name "reports" -exec find {} -name index.html \;)
 
-  echo "Checkout report published at ${ARTIFACTORY_URL}/${report_name}"
+  echo "Checkout report published at ${ARTIFACTORY_URL}/${report_file_name}"
   for f in ${index_files}; do
-    echo "Checkout report published at ${ARTIFACTORY_URL}/${report_name}/$f"
+    #See Artifactory archive entry download specs at https://www.jfrog.com/confluence/display/JFROG/Artifactory+REST+API#ArtifactoryRESTAPI-ArchiveEntryDownload
+    echo "Checkout report published at ${ARTIFACTORY_URL}/${report_file_name}!/$f"
   done
 }
 main() {
