@@ -34,3 +34,4 @@ params:
   SKIP_SSL_VALIDATION:
     # gradlew arguments and target after http proxy configuration.
   GRADLE_ARGS:
+  ARTIFACTORY_URL: # url without a leading slash

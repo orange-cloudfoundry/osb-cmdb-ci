@@ -12,6 +12,7 @@ readonly DEFAULT_ORG="${DEFAULT_ORG:?must be set}"
 readonly DEFAULT_SPACE="${DEFAULT_SPACE:?must be set}"
 readonly SKIP_SSL_VALIDATION="${SKIP_SSL_VALIDATION:?must be set}"
 readonly GRADLE_ARGS="${GRADLE_ARGS:?must be set}"
+readonly ARTIFACTORY_URL="${ARTIFACTORY_URL:?must be set}"
 
 # Temporary variables to construct gradle command line
 readonly gradle_http_proxy_host=$(echo $http_proxy | sed -E "s#http://(.*):(.+)#\1#")
@@ -46,20 +47,24 @@ run_tests() {
   export TESTS_BROKERAPPPATH=build/libs/spring-cloud-app-broker-acceptance-tests.jar
   ./gradlew ${gradle_proxy_config} ${GRADLE_ARGS}
 }
-zip_reports_for_publication() {
+load_metadata() {
     # Grab the metadata published by metadata resource
   url=$(cat metadata/atc_external_url)
   team=$(cat metadata/build_team_name)
   pipeline=$(cat metadata/build_pipeline_name)
   job=$(cat metadata/build_job_name)
   build=$(cat metadata/build_name)
-
+}
+zip_reports_for_publication() {
   report_name="reports_${job}_${build}.tgz"
-  echo "packaging found reports into reports_${job}_${build}.tgz"
-  find . -type d -name "reports" | xargs -n 20 tar cvfz
+  echo "packaging found reports into ${report_name}"
+  find . -type d -name "reports" | xargs -n 20 tar cvfz "${report_name}"
+
+  echo "Checkout report published at ${ARTIFACTORY_URL}/${report_name}"
 }
 main() {
   setup_symlinks
+  load_metadata
   pushd "git-repo" > /dev/null
     build
     run_tests
