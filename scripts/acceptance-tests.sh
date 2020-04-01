@@ -58,9 +58,13 @@ load_metadata() {
 zip_reports_for_publication() {
   report_name="reports_${job}_${build}.zip"
   echo "packaging found reports into ${report_name}"
-  find . -type d -name "reports" | xargs -n 20 zip -r "${report_name}"
+  find . -type d -name "reports" | xargs -n 20 jar cvf "${report_name}"
+  index_files=$(find . -type d -name "reports" -exec find {} -name index.html \;)
 
   echo "Checkout report published at ${ARTIFACTORY_URL}/${report_name}"
+  for f in ${index_files}; do
+    echo "Checkout report published at ${ARTIFACTORY_URL}/${report_name}/$f"
+  done
 }
 main() {
   setup_symlinks
