@@ -56,9 +56,9 @@ load_metadata() {
   build=$(cat metadata/build_name)
 }
 zip_reports_for_publication() {
-  report_name="reports_${job}_${build}.tgz"
+  report_name="reports_${job}_${build}.zip"
   echo "packaging found reports into ${report_name}"
-  find . -type d -name "reports" | xargs -n 20 tar cvfz "${report_name}"
+  find . -type d -name "reports" | xargs -n 20 zip -r "${report_name}"
 
   echo "Checkout report published at ${ARTIFACTORY_URL}/${report_name}"
 }
