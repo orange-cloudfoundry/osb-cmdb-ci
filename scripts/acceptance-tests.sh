@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#set -euo pipefail # we don't exit on errors, we trap them and exit last
+set -euo pipefail # exit on errors
 
 # Exit immediately if a pipeline returns a non-zero status.
 #set -o errexit
@@ -11,25 +11,10 @@
 # -u The shell shall write a message to standard error when it tries to expand a variable that  is  not set and immediately exit.
 # pipefail
 #    If set, the return value of a pipeline is the value of the last (rightmost) command to exit with a non-zero status, or zero if all commands in the pipeline exit successfully. This option is disabled by default.
-set -uo pipefail
 
 set -x # debug traces
-
-
-errcount=0
-ErrorHandler () {
-    (( errcount++ ))       # or (( errcount += $? ))
-    echo "Trapped $1, errcount is $errcount"
-}
-
-# See https://stackoverflow.com/a/9256709/1484823
-trap_with_arg() {
-    func="$1" ; shift
-    for sig ; do
-        trap "$func $sig" "$sig"
-    done
-}
-trap_with_arg ErrorHandler ERR
+declare -i errcount=0
+declare -i errcode=0
 
 readonly API_HOST="${API_HOST:?must be set}"
 readonly API_PORT="${API_PORT:?must be set}"
@@ -74,7 +59,16 @@ run_tests() {
   export SPRING_CLOUD_APPBROKER_ACCEPTANCETEST_CLOUDFOUNDRY_DEFAULT_SPACE="${DEFAULT_SPACE}"
   export SPRING_CLOUD_APPBROKER_ACCEPTANCETEST_CLOUDFOUNDRY_SKIP_SSL_VALIDATION="${SKIP_SSL_VALIDATION}"
   export TESTS_BROKERAPPPATH=build/libs/spring-cloud-app-broker-acceptance-tests.jar
+
+  # Don't wait on test error in order to still package test report
+  set +e
+
   ./gradlew ${gradle_proxy_config} ${GRADLE_ARGS}
+
+  if [[ $? -ne 0 ]]; then
+    errcount=$(( errcount + 1 ))
+  fi
+  set -e
 }
 load_metadata() {
     # Grab the metadata published by metadata resource
