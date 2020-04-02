@@ -1,6 +1,20 @@
 #!/usr/bin/env bash
-set -euo pipefail
+#set -euo pipefail # exit on errors
+
+# See https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
+# -u The shell shall write a message to standard error when it tries to expand a variable that  is  not set and immediately exit.
+# pipefail
+#    If set, the return value of a pipeline is the value of the last (rightmost) command to exit with a non-zero status, or zero if all commands in the pipeline exit successfully. This option is disabled by default.
+set -uo pipefail
+
 set -x # debug traces
+
+# Don't fail
+errcount=0
+ErrorHandler () {
+    (( errcount++ ))       # or (( errcount += $? ))
+}
+trap ErrorHandler ERR
 
 readonly API_HOST="${API_HOST:?must be set}"
 readonly API_PORT="${API_PORT:?must be set}"
@@ -79,5 +93,12 @@ main() {
     run_tests
     zip_reports_for_publication
   popd > /dev/null
+
+  if  (( errcount > 0 ))
+  then
+      echo "Test failed with $errcount errors"
+  fi
+  exit $errcount
+
 }
 main
