@@ -61,11 +61,14 @@ zip_reports_for_publication() {
   find . -type d -name "reports" | xargs -n 20 jar cvf "${report_file_name}"
   index_files=$(find . -type d -name "reports" -exec find {} -name index.html \;)
 
-  echo "Checkout report published at ${ARTIFACTORY_URL}/${report_file_name}"
+  notif_file_name="notification.md"
+  touch ${notif_file_name}
+  echo "Checkout report published at ${ARTIFACTORY_URL}/${report_file_name}" >> ${notif_file_name}
   for f in ${index_files}; do
     #See Artifactory archive entry download specs at https://www.jfrog.com/confluence/display/JFROG/Artifactory+REST+API#ArtifactoryRESTAPI-ArchiveEntryDownload
-    echo "Checkout report published at ${ARTIFACTORY_URL}/${report_file_name}!/$f"
+    echo " [$f](${ARTIFACTORY_URL}/${report_file_name}!/$f) " >> ${notif_file_name}
   done
+  echo "notification content written to ${notif_file_name}"
 }
 main() {
   setup_symlinks
