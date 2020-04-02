@@ -63,7 +63,8 @@ zip_reports_for_publication() {
 
   notif_file_name="notification.md"
   touch ${notif_file_name}
-  echo "Checkout report published at ${ARTIFACTORY_URL}/${report_file_name}" >> ${notif_file_name}
+  echo >> ${notif_file_name}
+  echo "Gradle [report archive](${ARTIFACTORY_URL}/${report_file_name}) with " >> ${notif_file_name}
   for f in ${index_files}; do
     #See Artifactory archive entry download specs at https://www.jfrog.com/confluence/display/JFROG/Artifactory+REST+API#ArtifactoryRESTAPI-ArchiveEntryDownload
     echo " [$f](${ARTIFACTORY_URL}/${report_file_name}!/$f) " >> ${notif_file_name}
