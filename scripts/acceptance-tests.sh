@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-#set -euo pipefail # exit on errors
+#set -euo pipefail # we don't exit on errors, we trap them and exit last
+
+# Exit immediately if a pipeline returns a non-zero status.
+#set -o errexit
+
+# If set, any trap on ERR is inherited by shell functions, command substitutions, and commands executed in a subshell environment. The ERR trap is normally not inherited in such cases.
+#set -o errtrace
 
 # See https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
 # -u The shell shall write a message to standard error when it tries to expand a variable that  is  not set and immediately exit.
@@ -9,12 +15,21 @@ set -uo pipefail
 
 set -x # debug traces
 
-# Don't fail
+
 errcount=0
 ErrorHandler () {
     (( errcount++ ))       # or (( errcount += $? ))
+    echo "Trapped $1, errcount is $errcount"
 }
-trap ErrorHandler ERR
+
+# See https://stackoverflow.com/a/9256709/1484823
+trap_with_arg() {
+    func="$1" ; shift
+    for sig ; do
+        trap "$func $sig" "$sig"
+    done
+}
+trap_with_arg ErrorHandler ERR
 
 readonly API_HOST="${API_HOST:?must be set}"
 readonly API_PORT="${API_PORT:?must be set}"
