@@ -79,10 +79,13 @@ load_metadata() {
   build=$(cat metadata/build_name)
 }
 zip_reports_for_publication() {
-  report_file_name="reports_${job}_${build}.jar"
+  report_file_name="reports_${job}_${build}.tgz"
   echo "packaging found reports into ${report_file_name}"
-  find . -type d -name "reports" | xargs -n 20 jar cvf "${report_file_name}"
-  index_files=$(find . -type d -name "reports" -exec find {} -name index.html \;)
+  # Avoid leading . in the tgz archive which breaks jcr
+  # See https://stackoverflow.com/questions/60988334/artifactory-archive-entry-download-404-for-tgz-with-leading-dot-in-path-to-arch
+  find . -type d -name "reports" | xargs -n 20 tar cvfz "${report_file_name}" --transform='s|^\./||S'
+  report_dirs=$(find . -type d -name "reports")
+  index_files=$(for d in $report_dirs; do find $d -name index.html | sed "s|^\./||"; done)
 
   notif_file_name="notification.md"
   touch ${notif_file_name}
