@@ -57,7 +57,6 @@ cleanUp() {
   cf s
   cf a
   cf service-brokers | grep test-broker
-  cf service-access
 }
 
 main() {
