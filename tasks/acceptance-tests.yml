@@ -26,6 +26,8 @@ run:
   path: ci-repo/scripts/acceptance-tests.sh
 
 params:
+  EXPOSE_PROD_ENV_VARS: # when set to "true", then the prod env vars are exposed. Required for testing prod environment startup
+  EXPOSE_AT_ENV_VARS:   # when set to "true", then the acceptance test env vars are exposed. Required for launching SCAB AT.
   API_HOST:
   API_PORT:
   USERNAME:
