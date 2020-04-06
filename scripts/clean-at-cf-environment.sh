@@ -52,11 +52,37 @@ cleanUp() {
   for s in ${SERVICE_INSTANCES} ; do
     cf ds -f $s
   done;
+}
 
+assert_no_more_leaks() {
   echo "You may check there is no remaining left over"
   cf s
   cf a
-  cf service-brokers | grep test-broker
+
+  echo "Making sure that there is no brokers left over"
+  cf service-brokers > brokers.txt
+
+  grep test-broker- brokers.txt
+  if [[ $? -ne 1 ]]; then
+      echo "Unexpected uncleaned up broker:"
+      cat brokers.txt
+      exit 1
+  fi
+
+  echo "Making sure that there is no service definition left over in ocmb brokered services"
+
+  OSB_CMDB_BROKERS=$(cat brokers.txt | grep cmdb | awk '{print $1}')
+  for b in $OSB_CMDB_BROKERS; do
+    cf service-access -b $b > service-access.txt
+    for p in app-service backing-service; do
+      grep $p service-access.txt
+      if [[ $? -ne 1 ]]; then
+          echo "Unexpected uncleaned up service definition [$p] in broker [$b] with access"
+          cat service-access.txt
+          exit 1
+      fi
+    done;
+  done;
 }
 
 main() {
