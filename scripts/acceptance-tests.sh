@@ -46,22 +46,59 @@ setup_symlinks() {
 }
 
 build() {
-  ./gradlew ${gradle_proxy_config} assemble -x test -x javadoc -x docsZip -x sourcesJar -x javadocJar -x distZip
+  if [[ $BUILD == "true" ]]; then
+    ./gradlew ${gradle_proxy_config} assemble -x test -x javadoc -x docsZip -x sourcesJar -x javadocJar -x distZip
+  else
+    echo "Skipping initial build"
+  fi
 }
 run_tests() {
   # The AT build.gradle explicitly propagates system properties starting with spring to the test environment
 
+
+  OSB_CMDB_PROPS=""
+
+  # when set to "true", then the AT properies are exposed. Required for testing osbcmdb dynamic catalog
+  if [[ $EXPOSE_AT_PROPS == "true" ]]; then
+    # During debug, we once attempted to bypass env variables with JVM properties
+    # This was not the root cause, and rather creates divergence with production mechanis using env var
+    # with cloudfoundry cf-set-env allow vars separated with dots while bash does not allow it
+    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.api-host=${API_HOST}"
+    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.api-port=${API_PORT}"
+    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.username=${USERNAME}"
+    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.password=${PASSWORD}"
+    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.client_id=${CLIENT_ID}"
+    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.client_secret=${CLIENT_SECRET}"
+    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.default-org=${DEFAULT_ORG}"
+    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.default-space=${DEFAULT_SPACE}"
+    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.acceptance-test.cloudfoundry.skip-ssl-validation=${SKIP_SSL_VALIDATION}"
+  fi
+
   # when set to "true", then the prod env vars are exposed. Required for testing prod environment startup
   if [[ $EXPOSE_PROD_ENV_VARS == "true" ]]; then
-    export SPRING_CLOUD_APPBROKER_CLOUDFOUNDRY_API_HOST="${API_HOST}"
-    export SPRING_CLOUD_APPBROKER_CLOUDFOUNDRY_API_PORT="${API_PORT}"
-    export SPRING_CLOUD_APPBROKER_CLOUDFOUNDRY_USERNAME="${USERNAME}"
-    export SPRING_CLOUD_APPBROKER_CLOUDFOUNDRY_PASSWORD="${PASSWORD}"
-    export SPRING_CLOUD_APPBROKER_CLOUDFOUNDRY_CLIENT_ID="${CLIENT_ID}"
-    export SPRING_CLOUD_APPBROKER_CLOUDFOUNDRY_CLIENT_SECRET="${CLIENT_SECRET}"
-    export SPRING_CLOUD_APPBROKER_CLOUDFOUNDRY_DEFAULT_ORG="${DEFAULT_ORG}"
-    export SPRING_CLOUD_APPBROKER_CLOUDFOUNDRY_DEFAULT_SPACE="${DEFAULT_SPACE}"
-    export SPRING_CLOUD_APPBROKER_CLOUDFOUNDRY_SKIP_SSL_VALIDATION="${SKIP_SSL_VALIDATION}"
+    # During debug, we once attempted to bypass env variables with JVM properties
+    # This was not the root cause, and rather creates divergence with production mechanis using env var
+    # with cloudfoundry cf-set-env allow vars separated with dots while bash does not allow it
+#    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.deployer.cloudfoundry.api-host=${API_HOST}"
+#    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.deployer.cloudfoundry.api-port=${API_PORT}"
+#    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.deployer.cloudfoundry.username=${USERNAME}"
+#    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.deployer.cloudfoundry.password=${PASSWORD}"
+#    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.deployer.cloudfoundry.client_id=${CLIENT_ID}"
+#    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.deployer.cloudfoundry.client_secret=${CLIENT_SECRET}"
+#    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.deployer.cloudfoundry.default-org=${DEFAULT_ORG}"
+#    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.deployer.cloudfoundry.default-space=${DEFAULT_SPACE}"
+#    OSB_CMDB_PROPS="${OSB_CMDB_PROPS} -Dspring.cloud.appbroker.deployer.cloudfoundry.skip-ssl-validation=${SKIP_SSL_VALIDATION}"
+
+    # To check received env in gradle test, use a gradle --debug output which produces the following trace
+    # > 10:56:56.188 [DEBUG] [org.gradle.process.internal.DefaultExecHandle] Environment for process 'Gradle Test Executor 1': { [...] }
+    export SPRING_CLOUD_APPBROKER_DEPLOYER_CLOUDFOUNDRY_API_HOST="${API_HOST}"
+    export SPRING_CLOUD_APPBROKER_DEPLOYER_CLOUDFOUNDRY_API_PORT="${API_PORT}"
+    export SPRING_CLOUD_APPBROKER_DEPLOYER_CLOUDFOUNDRY_USERNAME="${USERNAME}"
+    export SPRING_CLOUD_APPBROKER_DEPLOYER_CLOUDFOUNDRY_PASSWORD="${PASSWORD}"
+    export SPRING_CLOUD_APPBROKER_DEPLOYER_CLOUDFOUNDRY_DEFAULT_ORG="${DEFAULT_ORG}"
+    export SPRING_CLOUD_APPBROKER_DEPLOYER_CLOUDFOUNDRY_DEFAULT_SPACE="${DEFAULT_SPACE}"
+    export SPRING_CLOUD_APPBROKER_DEPLOYER_CLOUDFOUNDRY_SKIP_SSL_VALIDATION="${SKIP_SSL_VALIDATION}"
+
   fi
   # when set to "true", then the acceptance test env vars are exposed. Required for launching SCAB AT.
   if [[ $EXPOSE_AT_ENV_VARS == "true" ]]; then
@@ -81,7 +118,7 @@ run_tests() {
   # Don't wait on test error in order to still package test report
   set +e
 
-  ./gradlew ${gradle_proxy_config} ${GRADLE_ARGS}
+  ./gradlew ${gradle_proxy_config} ${OSB_CMDB_PROPS} ${GRADLE_ARGS}
 
   if [[ $? -ne 0 ]]; then
     errcount=$(( errcount + 1 ))
