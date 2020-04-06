@@ -35,7 +35,7 @@ cleanUp() {
   AT_BROKERS=$(cf service-brokers | grep test-broker | awk '{print $1}')
   echo "Cleaning up app broker left overs: [${AT_BROKERS}]"
   for b in ${AT_BROKERS}; do
-    SERVICE_DEFINITIONS=$(cf service-access -b $b | tail --lines=+4 | awk '{print $1}')
+    SERVICE_DEFINITIONS=$(cf service-access -b $b | tail -n +4 | awk '{print $1}')
         echo "Purging services [${SERVICE_DEFINITIONS}] for broker $b"
         for s in ${SERVICE_DEFINITIONS}; do
           cf purge-service-offering -f -b $b $s
