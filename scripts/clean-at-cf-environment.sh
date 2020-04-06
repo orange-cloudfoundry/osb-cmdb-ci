@@ -89,6 +89,7 @@ main() {
   validate_args
   login
   cleanUp
+  assert_no_more_leaks
 
   if  (( errcount > 0 ))
   then
