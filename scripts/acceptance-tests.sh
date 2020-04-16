@@ -25,7 +25,7 @@ readonly CLIENT_SECRET="${CLIENT_SECRET:?must be set}"
 readonly DEFAULT_ORG="${DEFAULT_ORG:?must be set}"
 readonly DEFAULT_SPACE="${DEFAULT_SPACE:?must be set}"
 readonly SKIP_SSL_VALIDATION="${SKIP_SSL_VALIDATION:?must be set}"
-readonly GRADLE_ARGS="${GRADLE_ARGS:?must be set}"
+readonly GRADLE_ARGS="${GRADLE_ARGS//\$PWD/${PWD}}" # Replace $PWD litteral with content of the PWD env var, ie current build
 readonly ARTIFACTORY_URL="${ARTIFACTORY_URL:?must be set}"
 
 # Temporary variables to construct gradle command line
