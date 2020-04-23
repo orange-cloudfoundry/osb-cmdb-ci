@@ -144,7 +144,16 @@ zip_reports_for_publication() {
 
   notif_file_name="notification.md"
   touch ${notif_file_name}
+  # Reset content from previous execution to avoid reporting duplicates
+  echo > ${notif_file_name}
+  # shellcheck disable=SC2129
+  printf "\nLast commit id: " >> ${notif_file_name}
+  cat .git/ref >> ${notif_file_name}
+  # shellcheck disable=SC2129
+  printf "\nLast commit message: " >> ${notif_file_name}
+  cat .git/commit_message >> ${notif_file_name}
   echo >> ${notif_file_name}
+
   echo "Gradle [report archive](${ARTIFACTORY_URL}/${report_file_name}) with: " >> ${notif_file_name}
   for f in ${index_files}; do
     #See Artifactory archive entry download specs at https://www.jfrog.com/confluence/display/JFROG/Artifactory+REST+API#ArtifactoryRESTAPI-ArchiveEntryDownload
