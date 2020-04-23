@@ -147,10 +147,12 @@ zip_reports_for_publication() {
   # Reset content from previous execution to avoid reporting duplicates
   echo > ${notif_file_name}
   # shellcheck disable=SC2129
-  printf "\nLast commit has message: \`\`\`\n" >> ${notif_file_name}
+  printf "\nLast commit has message: \n\`\`\`\n" >> ${notif_file_name}
   cat .git/commit_message >> ${notif_file_name}
-  printf "\n\`\`\`\nand hash: " >> ${notif_file_name}
+  printf "\n\`\`\`\nand hash: \'" >> ${notif_file_name}
   cat .git/ref >> ${notif_file_name}
+  printf "\'" >> ${notif_file_name}
+
   # shellcheck disable=SC2129
   echo >> ${notif_file_name}
 
