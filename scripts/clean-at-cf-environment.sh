@@ -52,6 +52,12 @@ cleanUp() {
   for s in ${SERVICE_INSTANCES} ; do
     cf ds -f $s
   done;
+  BACKING_SPACES=$(cf spaces | grep "bsn-" | awk '{print $1}')
+  echo "Deleting backing service spaces  [$BACKING_SPACES]"
+  for s in ${BACKING_SPACES} ; do
+    cf delete-space -f $s
+  done;
+
 }
 
 assert_no_more_leaks() {
