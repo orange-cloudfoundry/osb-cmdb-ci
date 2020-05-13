@@ -80,7 +80,7 @@ assert_no_more_leaks() {
   OSB_CMDB_BROKERS=$(cat brokers.txt | grep cmdb | awk '{print $1}')
   for b in $OSB_CMDB_BROKERS; do
     cf service-access -b $b > service-access.txt
-    for p in app-service backing-service; do
+    for p in cmdb-dont-use-scab-backing-service bsn app-service backing-service; do
       grep $p service-access.txt
       if [[ $? -ne 1 ]]; then
           echo "Unexpected uncleaned up service definition [$p] in broker [$b] with access"
@@ -92,8 +92,8 @@ assert_no_more_leaks() {
 }
 
 main() {
-  validate_args
-  login
+  # Allow interactive usage of the script: if already logged in then does not require args and login
+  cf t || ( validate_args && login )
   cleanUp
   assert_no_more_leaks
 
