@@ -47,7 +47,7 @@ setup_symlinks() {
 
 build() {
   if [[ $BUILD == "true" ]]; then
-    ./gradlew ${gradle_proxy_config} assemble -x test -x javadoc -x sourcesJar -x javadocJar -x distZip
+    ./gradlew ${gradle_proxy_config} assemble -x test -x javadoc -x sourcesJar -x javadocJar
   else
     echo "Skipping initial build"
   fi
