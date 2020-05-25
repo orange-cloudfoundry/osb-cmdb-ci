@@ -147,6 +147,16 @@ zip_reports_for_publication() {
   # Reset content from previous execution to avoid reporting duplicates
   echo > ${notif_file_name}
   # shellcheck disable=SC2129
+
+  # Pull request variant https://github.com/telia-oss/github-pr-resource#get
+  if [ -f .git/resource/title ]; then
+    printf "\nFrom pr#" >> ${notif_file_name}
+    cat .git/resource/pr >> ${notif_file_name}
+    printf " with title:\`" >> ${notif_file_name}
+    cat .git/resource/title >> ${notif_file_name}
+    printf "\`\n" >> ${notif_file_name}
+  fi
+
   printf "\nLast commit has message: \n\`\`\`\n" >> ${notif_file_name}
   # Git resource variant
   if [ -f .git/commit_message ]; then
