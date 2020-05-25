@@ -148,9 +148,24 @@ zip_reports_for_publication() {
   echo > ${notif_file_name}
   # shellcheck disable=SC2129
   printf "\nLast commit has message: \n\`\`\`\n" >> ${notif_file_name}
-  cat .git/commit_message >> ${notif_file_name}
+  # Git resource variant
+  if [ -f .git/commit_message ]; then
+    cat .git/commit_message >> ${notif_file_name}
+  fi
+  # Pull request variant https://github.com/telia-oss/github-pr-resource#get
+  if [ -f .git/resource/message ]; then
+    cat .git/resource/message >> ${notif_file_name}
+  fi
+
   printf "\n\`\`\`\nand hash: \`" >> ${notif_file_name}
-  cat .git/ref >> ${notif_file_name}
+  # Git resource variant
+  if [ -f .git/ref ]; then
+    cat .git/ref >> ${notif_file_name}
+  fi
+  # Pull request variant https://github.com/telia-oss/github-pr-resource#get
+  if [ -f .git/resource/head_sha ]; then
+    cat .git/resource/head_sha >> ${notif_file_name}
+  fi
   printf "\`" >> ${notif_file_name}
 
   # shellcheck disable=SC2129
