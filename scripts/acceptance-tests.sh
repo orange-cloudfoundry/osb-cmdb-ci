@@ -62,7 +62,7 @@ build() {
 rename_jar_file_to_be_predicable() {
 
   #See inspiration from http://tldp.org/LDP/abs/html/globbingref.html
-  IFS="$(printf '\n\t')"   # Remove space.
+  #IFS="$(printf '\n\t')"   # Remove space.
 
   for file in ${PWD}/osb-cmdb/build/libs/osb-cmdb-*.jar ; do         # Use ./* ... NEVER bare *
     echo "renaming $file into $PWD/osb-cmdb/build/libs/osb-cmdb.jar"
