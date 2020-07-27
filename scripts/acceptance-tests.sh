@@ -64,14 +64,14 @@ rename_jar_file_to_be_predicable() {
   #See inspiration from http://tldp.org/LDP/abs/html/globbingref.html
   IFS="$(printf '\n\t')"   # Remove space.
 
-  for file in "${PWD}"/git-repo/osb-cmdb/build/libs/osb-cmdb-*.jar ; do         # Use ./* ... NEVER bare *
+  for file in ${PWD}/git-repo/osb-cmdb/build/libs/osb-cmdb-*.jar ; do         # Use ./* ... NEVER bare *
     echo "renaming $file into $PWD/git-repo/osb-cmdb/build/libs/osb-cmdb.jar"
 
     # $ mv --help
     #   -u, --update                 move only when the SOURCE file is newer
     #                                 than the destination file or when the
     #                                 destination file is missing
-    mv -u "$file" "$PWD/git-repo/osb-cmdb/build/libs/osb-cmdb.jar"
+    mv -u "${file}" "$PWD/git-repo/osb-cmdb/build/libs/osb-cmdb.jar"
   done
 
   if [ ! -f  "$PWD/git-repo/osb-cmdb/build/libs/osb-cmdb.jar" ]; then
