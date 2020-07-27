@@ -74,8 +74,8 @@ rename_jar_file_to_be_predicable() {
     mv -u "${file}" "$PWD/osb-cmdb/build/libs/osb-cmdb.jar"
   done
 
-  if [ ! -f  "$PWD/git-repo/osb-cmdb/build/libs/osb-cmdb.jar" ]; then
-    echo "did not find expected jar file at $PWD/git-repo/osb-cmdb/build/libs/osb-cmdb.jar Exiting"
+  if [ ! -f  "$PWD/osb-cmdb/build/libs/osb-cmdb.jar" ]; then
+    echo "did not find expected jar file at $PWD/osb-cmdb/build/libs/osb-cmdb.jar Exiting"
     exit 1
   fi
 }
