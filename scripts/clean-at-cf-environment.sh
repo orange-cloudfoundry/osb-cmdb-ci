@@ -38,7 +38,21 @@ cleanUp() {
     SERVICE_DEFINITIONS=$(cf service-access -b $b | tail -n +4 | awk '{print $1}' | uniq )
         echo "Purging services [${SERVICE_DEFINITIONS}] for broker $b"
         for s in ${SERVICE_DEFINITIONS}; do
-          cf purge-service-offering -f -b $b $s
+          CF_PURGE_OUTPUT=$(cf purge-service-offering -f -b $b $s)
+          # Can't rely on cf purge-service-offering exit status
+          if [[ "$CF_PURGE_OUTPUT" =~ "FAILED" ]]; then
+              echo "Failed to purge service offering $s from broker $b due to CLI bug https://github.com/cloudfoundry/cli/issues/1859 Attempting workaround"
+              SERVICES_OFFERING_SEARCH_ENDPOINT=$(CF_TRACE=true cf purge-service-offering -f -b $b $s | grep  'GET /v2/services?q=' | awk '{print $2}')
+              FIRST_SERVICE_OFFERING_GUID=$(cf curl $SERVICES_OFFERING_SEARCH_ENDPOINT | jq -r .resources[0].metadata.guid)
+              FIRST_SERVICE_OFFERING_LABEL=$(cf curl "/v2/services/$FIRST_SERVICE_OFFERING_GUID" | jq .entity.label)
+              echo "manually purging service offering guid $FIRST_SERVICE_OFFERING_GUID whose label is $FIRST_SERVICE_OFFERING_LABEL"
+              DELETE_OUTPUT=$(cf curl -X DELETE "/v2/services/$FIRST_SERVICE_OFFERING_GUID?purge=true")
+              #Can't test $? as cf curl always return 0. See https://github.com/cloudfoundry/cli/issues/1970
+              if [[ "$DELETE_OUTPUT" =~ error_code ]]; then
+                echo "Workaround for purge failed: $DELETE_OUTPUT"
+                exit 1
+              fi
+          fi
         done
         cf delete-service-broker -f $b
   done
@@ -70,7 +84,7 @@ assert_no_more_leaks() {
 
   grep test-broker- brokers.txt
   if [[ $? -ne 1 ]]; then
-      echo "Unexpected uncleaned up broker:"
+      echo "Unexpected uncleaned up broker: the list should not contain any broker whose name contains [test-broker-] "
       cat brokers.txt
       exit 1
   fi
