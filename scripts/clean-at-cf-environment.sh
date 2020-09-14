@@ -56,12 +56,22 @@ cleanUp() {
         done
         cf delete-service-broker -f $b
   done
-  APPS=$( cf a | tail -n +5 | awk '{print $1}')
+  # $ cf apps
+  #Getting apps in org osb-cmdb-services-acceptance-tests / space development as XX...
+  #
+  #name                                    requested state   processes   routes
+  #test-broker-app-async-update-instance   started           web:1/1     test-broker-app-async-update-instance.nd-int-paas.itn.intraorange
+  APPS=$(cf a | tail -n +4 | awk '{print $1}')
   echo "Deleting apps [$APPS]"
   for a in ${APPS}; do
     cf d -f $a
   done
-  SERVICE_INSTANCES=$( cf s | tail -n +5 | awk '{print $1}')
+  # $ cf s
+  #Getting services in org osb-cmdb-services-acceptance-tests / space development as XX...
+  #
+  #name      service   plan   bound apps   last operation     broker    upgrade available
+  #gberche   p-mysql   10mb                create succeeded   p-mysql
+  SERVICE_INSTANCES=$( cf s | tail -n +4 | awk '{print $1}')
   echo "Deleting services [$SERVICE_INSTANCES]"
   for s in ${SERVICE_INSTANCES} ; do
     cf ds -f $s
@@ -78,7 +88,26 @@ assert_no_more_leaks() {
   echo "You may check there is no remaining left over"
   cf s
   cf a
-
+  #$ cf s
+  #Getting services in org osb-cmdb-services-acceptance-tests / space development as XX...
+  #
+  #No services found
+  #$ cf a
+  #Getting apps in org osb-cmdb-services-acceptance-tests / space development as XX...
+  #
+  #No apps found
+  cf s > services.txt
+  cf a > apps.txt
+  if [[ ! $(cat services.txt) =~ "No services found" ]]; then
+    echo "leaking services:"
+    cat services.txt
+    exit 1
+  fi
+  if [[ ! $(cat apps.txt) =~ "No apps found" ]]; then
+    echo "leaking apps:"
+    cat apps.txt
+    exit 1
+  fi
   echo "Making sure that there is no brokers left over"
   cf service-brokers > brokers.txt
 
