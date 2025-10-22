@@ -18,10 +18,11 @@ declare -i errcount=0
 declare -i errcode=0
 
 validate_args() {
+  echo "For interactive usage, consider switching cf target or sourcing ~/.osb-cmdb.env on desktops"
   readonly API_HOST="${API_HOST:?must be set}"
   readonly API_PORT="${API_PORT:?must be set}"
   readonly USERNAME="${USERNAME:?must be set}"
-  readonly PASSWORD="${PASSWORD:?must be set}"
+  readonly PASSWORD="${PASSWORD:?must be set}" # credential_leak_validated
   readonly DEFAULT_ORG="${DEFAULT_ORG:?must be set}"
   readonly DEFAULT_SPACE="${DEFAULT_SPACE:?must be set}"
   readonly SKIP_SSL_VALIDATION="${SKIP_SSL_VALIDATION:?must be set}"
@@ -29,6 +30,19 @@ validate_args() {
 
 login () {
   cf login --skip-ssl-validation  -a "${API_HOST}" -o "$DEFAULT_ORG" -s "$DEFAULT_SPACE" -u "$USERNAME" -p "$PASSWORD"
+}
+
+# $1 service name, e.g. bsn-create-async-instance-with-async-service-keys
+function purgeServiceRexposedByPlatformOsbCmdbInstances() {
+    NON_AT_OSB_CMDB_BROKERS_LEAKING_AT_SERVICES=$(cf service-access -e $1 | grep "broker: " | awk '{ print $2 }' )
+    echo "Purging leak AT service $1 from non-at brokers: ${NON_AT_OSB_CMDB_BROKERS_LEAKING_AT_SERVICES}"
+    for b in ${NON_AT_OSB_CMDB_BROKERS_LEAKING_AT_SERVICES}; do
+      CF_PURGE_OUTPUT=$(cf purge-service-offering -f -b $b $1)
+      if [[ "$CF_PURGE_OUTPUT" =~ "FAILED" ]]; then
+        echo "Failed: $CF_PURGE_OUTPUT"
+        exit 1
+      fi
+    done
 }
 
 cleanUp() {
@@ -53,6 +67,7 @@ cleanUp() {
                 exit 1
               fi
           fi
+          purgeServiceRexposedByPlatformOsbCmdbInstances $s
         done
         cf delete-service-broker -f $b
   done
@@ -60,7 +75,7 @@ cleanUp() {
   #Getting apps in org osb-cmdb-services-acceptance-tests / space development as XX...
   #
   #name                                    requested state   processes   routes
-  #test-broker-app-async-update-instance   started           web:1/1     test-broker-app-async-update-instance.nd-int-paas.itn.intraorange
+  #test-broker-app-async-update-instance   started           web:1/1     test-broker-app-async-update-instance.my-domain.org
   APPS=$(cf a | tail -n +4 | awk '{print $1}')
   echo "Deleting apps [$APPS]"
   for a in ${APPS}; do
@@ -137,6 +152,9 @@ assert_no_more_leaks() {
 main() {
   # Allow interactive usage of the script: if already logged in then does not require args and login
   cf t || ( validate_args && login )
+  if cf t | grep  "No org or space targeted"; then
+    validate_args && login
+  fi
   cleanUp
   assert_no_more_leaks
 
